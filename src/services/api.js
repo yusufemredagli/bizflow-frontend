@@ -51,6 +51,8 @@ const request = async (
     window.dispatchEvent(new Event("bizflow:session-expired"))
   }
 
+  if (response.ok && options.responseType === "blob") return response.blob()
+
   if (response.status === 204) return null
 
   const contentType = response.headers.get("content-type") || ""
@@ -494,3 +496,8 @@ export {
   getCustomer,
   getMember,
 }
+// File bytes use the same Bearer token and session-expiry handling as JSON requests.
+export const getAttachmentBlob = (attachmentId, signal) => request(
+  `/attachments/${attachmentId}/content`,
+  { signal, responseType: "blob" }
+)

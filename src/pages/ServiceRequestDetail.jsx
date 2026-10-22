@@ -19,7 +19,8 @@ import {
   getAttachments,
   uploadAttachment,
   deleteAttachment,
-  completeServiceRequest
+  completeServiceRequest,
+  getAttachmentBlob
 } from "../services/api.js"
 
 import {
@@ -34,16 +35,6 @@ import {
 import {
   useToast
 } from "../context/ToastContext.jsx"
-
-
-const API_URL =
-  import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, "")
-
-const FILE_BASE_URL =
-  API_URL.replace(
-    /\/api\/?$/,
-    ""
-  )
 
 
 const emptyCompletionForm = {
@@ -1412,8 +1403,30 @@ function AttachmentCard({
       )
 
 
-  const fileUrl =
-    `${FILE_BASE_URL}${attachment.filePath}`
+  const [content, setContent] = useState(null)
+  useEffect(() => {
+    const controller = new AbortController()
+    let active = true
+    let objectUrl
+    getAttachmentBlob(attachment.id, controller.signal)
+      .then(blob => {
+        if (!active) return
+        objectUrl = URL.createObjectURL(blob)
+        setContent({ id: attachment.id, url: objectUrl })
+      })
+      .catch(error => {
+        if (active && error.name !== "AbortError") {
+          setContent({ id: attachment.id, error: error.message })
+        }
+      })
+    return () => {
+      active = false
+      controller.abort()
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [attachment.id])
+  const fileUrl = content?.id === attachment.id ? content.url : undefined
+  const fileError = content?.id === attachment.id ? content.error : undefined
 
 
   const uploader =
@@ -1427,16 +1440,18 @@ function AttachmentCard({
 
       <div className="attachment-preview">
 
-        {isImage ? (
+        {fileError ? (
+          <span role="alert">{fileError}</span>
+        ) : isImage ? (
 
-          <img
+          fileUrl ? <img
             src={
               fileUrl
             }
             alt={
               attachment.originalName
             }
-          />
+          /> : <span>Yükleniyor…</span>
 
         ) : (
 
@@ -1505,6 +1520,8 @@ function AttachmentCard({
 
         <a
           className="attachment-open-link"
+          aria-disabled={!fileUrl}
+          onClick={event => { if (!fileUrl) event.preventDefault() }}
           href={
             fileUrl
           }
