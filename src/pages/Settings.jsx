@@ -24,7 +24,7 @@ function Settings() {
 
   const handleLogout = () => {
     clearSession()
-    navigate("/")
+    navigate("/login")
   }
 
   return (

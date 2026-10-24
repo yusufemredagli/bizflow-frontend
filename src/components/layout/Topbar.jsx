@@ -23,7 +23,7 @@ function Topbar({
 
   const logout = () => {
     clearSession()
-    navigate("/")
+    navigate("/login")
   }
 
   return (

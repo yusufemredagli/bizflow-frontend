@@ -6,6 +6,13 @@ import {
   Navigate
 } from "react-router-dom"
 
+import PublicLayout from "./components/public/PublicLayout.jsx"
+import Home from "./pages/public/Home.jsx"
+import Features from "./pages/public/Features.jsx"
+import Solutions from "./pages/public/Solutions.jsx"
+import About from "./pages/public/About.jsx"
+import Contact from "./pages/public/Contact.jsx"
+
 import Login from "./pages/Login.jsx"
 import Dashboard from "./pages/Dashboard.jsx"
 import ServiceRequests from "./pages/ServiceRequests.jsx"
@@ -42,7 +49,7 @@ function ProtectedRoute({
   if (!token) {
     return (
       <Navigate
-        to="/"
+        to="/login"
         replace
       />
     )
@@ -54,7 +61,7 @@ function ProtectedRoute({
       getCurrentRole()
 
     if (!role || !["OWNER", "MANAGER", "TECHNICIAN"].includes(role)) {
-      return <Navigate to="/" replace />
+      return <Navigate to="/login" replace />
     }
 
     if (
@@ -84,9 +91,16 @@ function App() {
     <BrowserRouter>
 
       <Routes>
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/solutions" element={<Solutions />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+        </Route>
 
         <Route
-          path="/"
+          path="/login"
           element={
             <Login />
           }
